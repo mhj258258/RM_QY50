@@ -23,6 +23,9 @@ void delay_decrement(void);
 //-------tomi--------
 void delaybm_us(uint32_t nus);
 void delaybm_ms(uint16_t nms);
+void delay10ms(void);
+void delay50ms(void);
+void delay100ms(void);
 //-------hilink------
 unsigned long long Get_tick(void);
 

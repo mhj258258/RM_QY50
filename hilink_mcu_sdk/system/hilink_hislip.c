@@ -45,9 +45,6 @@ static unsigned short g_frameLen = 0;
 /* 创建HiSlip数据帧, 入参sendInfo是待发送帧, 出参frame表示输出创建的数据帧流 */
 static short HiSlipBuildFrame(HiSlipSend* sendInfo, unsigned char** frame)
 {
-		unsigned short i;
-	  unsigned short j = 0;
-	  unsigned char calCrc = 0;
     if ((sendInfo == NULL) || (frame == NULL)) {
         return HISLIP_ERR;
     }
@@ -56,18 +53,18 @@ static short HiSlipBuildFrame(HiSlipSend* sendInfo, unsigned char** frame)
         return HISLIP_ERR;
     }
 
-    
+    unsigned short i;
     /* 发送缓存清空 */
     for (i = 0; i < HISLIP_MAX_FRM_LEN; i++) {
         *(g_hiSlipSendBuf + i) = 0;
     }
 
-   
+    unsigned short j = 0;
     /* 开始结束标记 */
     g_hiSlipSendBuf[j] = END;
     j++;
 
-
+    unsigned char calCrc = 0;
     /* 包编号pkgNum */
     g_hiSlipSendBuf[j] = sendInfo->pkgNum;
     calCrc = g_hiSlipCrcTable[calCrc ^ g_hiSlipSendBuf[j]];
@@ -104,7 +101,6 @@ static short HiSlipBuildFrame(HiSlipSend* sendInfo, unsigned char** frame)
 /* 发送由HiSlipBuildFrame函数创建的HiSlip帧数据流 */
 static short HiSlipSendFrame(const unsigned char* data, unsigned short len)
 {
-		unsigned char* buildFrame = NULL;
     if ((data == NULL) || (len == 0) || (len > HISLIP_MAX_DATA_LEN)) {
         return HISLIP_ERR;
     }
@@ -113,7 +109,7 @@ static short HiSlipSendFrame(const unsigned char* data, unsigned short len)
     g_hiSlipHandler.sendInfo.len = len;
     g_hiSlipHandler.sendInfo.frameSize = 0;
 
-    
+    unsigned char* buildFrame = NULL;
     if (HiSlipBuildFrame(&(g_hiSlipHandler.sendInfo), &buildFrame) != HISLIP_OK) {
         return HISLIP_ERR;
     }
@@ -135,12 +131,12 @@ static unsigned char HiSlipGetValidSeq(void)
 
 static short HiSlipCrcCheck(const unsigned char* data, unsigned short len)
 {
-	  unsigned char i;
-    unsigned char calCrc = 0;
-	
     if ((data == NULL) || (len == 0)) {
         return HISLIP_ERR;
     }
+
+    unsigned char i;
+    unsigned char calCrc = 0;
 
     for (i = 0; i < (len - HISLIP_FCS_LEN); i++) {
         calCrc = g_hiSlipCrcTable[calCrc ^ (*data)];
@@ -171,18 +167,13 @@ static void HiSlipHandleAck(unsigned char seq, unsigned short cmd, unsigned char
 /* 处理WiFi模组发来的的数据包 */
 static short HiSlipProcessPkg(unsigned char* data, unsigned short len)
 {
-		unsigned short receiveLen = 0;
-		unsigned char* tmp = NULL;
-		unsigned char packageNum = 0;
-	  unsigned char seq = 0;
-		short cmd = 0;
-		unsigned short valLen = 0;
     if ((data == NULL) || (len == 0)) {
         return HISLIP_ERR;
     }
-		
-		tmp = data;
-    packageNum = *tmp;
+
+    unsigned short receiveLen = 0;
+    unsigned char* tmp = data;
+    unsigned char packageNum = *tmp;
     tmp += HISLIP_PKG_NUM_LEN;
 
     if ((packageNum & HISLIP_EA_BIT) == 0) {
@@ -190,9 +181,9 @@ static short HiSlipProcessPkg(unsigned char* data, unsigned short len)
         return HISLIP_ERR;
     }
 
-    seq = *tmp;
+    unsigned char seq = *tmp;
     tmp += HISLIP_SEQ_NUM_LEN;
-    cmd = HiSlipParseDataEA(tmp, &receiveLen);
+    short cmd = HiSlipParseDataEA(tmp, &receiveLen);
     if (cmd == HISLIP_ERR) {
         return HISLIP_ERR;
     }
@@ -206,7 +197,7 @@ static short HiSlipProcessPkg(unsigned char* data, unsigned short len)
 
     g_hiSlipHandler.rcvInfo.curSeq = seq;
     tmp += receiveLen;
-    valLen = ((len - HISLIP_PKG_NUM_LEN) - HISLIP_SEQ_NUM_LEN) - receiveLen;
+    unsigned short valLen = ((len - HISLIP_PKG_NUM_LEN) - HISLIP_SEQ_NUM_LEN) - receiveLen;
 
     if ((seq & HISLIP_EA_BIT) == HISLIP_ACK_TYPE) {
         HiSlipHandleAck((seq & (~HISLIP_EA_BIT)), (unsigned short)cmd, tmp, valLen);
@@ -221,7 +212,6 @@ static short HiSlipProcessPkg(unsigned char* data, unsigned short len)
 
 static unsigned short HiSlipUartWrite(const unsigned char* buf, unsigned short size)
 {
-	   unsigned short len = 0;
     if ((buf == NULL) || (size < HISLIP_FRAME_MIN_LEN)) {
         return 0;
     }
@@ -229,6 +219,7 @@ static unsigned short HiSlipUartWrite(const unsigned char* buf, unsigned short s
     HiLinkUartSendOneByte(*buf);
     buf++;
 
+    unsigned short len = 0;
     while (len < (size - HISLIP_FLAG_LEN)) {
         switch (*buf) {
             case END:
@@ -254,16 +245,12 @@ static unsigned short HiSlipUartWrite(const unsigned char* buf, unsigned short s
 /* maxSize表示保存读取数据的缓存的最大长度 */
 static unsigned short HiSlipUartRead(unsigned char* outBuf, unsigned short maxSize)
 {
-	  unsigned short readLen = 0;
-    unsigned char i;
-		unsigned short start = 0;
-	  unsigned short j;
-		unsigned short leftLen = 0;
-	  unsigned short rightIdx = 0;
     if ((outBuf == NULL) || (maxSize == 0)) {
         return 0;
     }
 
+    unsigned short readLen = 0;
+    unsigned char i;
     for (i = g_bufReadIndex; i < HISLIP_UART_SKB_NUM; i++) {
         if (g_uartHandler.skb[i].len != 0) {
             readLen = g_uartHandler.skb[i].len;
@@ -282,15 +269,16 @@ static unsigned short HiSlipUartRead(unsigned char* outBuf, unsigned short maxSi
             return 0;
         }
     }
-		start = g_uartHandler.skb[g_bufReadIndex].startPos;
 
+    unsigned short start = g_uartHandler.skb[g_bufReadIndex].startPos;
+    unsigned short j;
     if ((start + readLen) <= g_uartHandler.bufSize) {
         for (j = 0; j < readLen; j++) {
             *(outBuf + j) = *(g_uartHandler.buf + start + j);
         }
     } else { /* 帧交叠 */
-        leftLen = g_uartHandler.bufSize - start;
-
+        unsigned short leftLen = g_uartHandler.bufSize - start;
+        unsigned short rightIdx = 0;
         for (j = 0; j < readLen; j++) {
             if (j < leftLen) {
                 *(outBuf + j) = *(g_uartHandler.buf + start + j);
@@ -368,13 +356,13 @@ void HiSlipFillDataEA(unsigned short data, unsigned short* outLen, unsigned char
 /* 解析EA结构数据, 返回解析后的整型数据 */
 short HiSlipParseDataEA(const unsigned char* data, unsigned short* len)
 {
-	  short outData;
-		unsigned char tmp = 0;
     if ((data == NULL) || (len == NULL)) {
         return HISLIP_ERR;
     }
+
+    short outData;
     /* 0表示EA结构的第1个字节 */
-    tmp = data[0];
+    unsigned char tmp = data[0];
 
     if ((tmp & HISLIP_EA_BIT) != 0) {
         tmp = tmp & (~HISLIP_EA_BIT);
@@ -420,15 +408,14 @@ void HiSlipSendAckMsg(unsigned char seq, unsigned short cmd, unsigned char resul
 /* HiSlip数据发送, 参数cr表示发送的消息类型(Cmd或Ack) */
 void HiSlipSendData(unsigned char* data, unsigned short len, unsigned char cr)
 {
-	unsigned char* tmpData = NULL;
-	unsigned short left = 0;
-	unsigned char seq = 0;
-  unsigned char packageNum = 0;
-		if ((data == NULL) || (len == 0) || (len > HISLIP_SEND_LEN_MAX)) {
+    if ((data == NULL) || (len == 0) || (len > HISLIP_SEND_LEN_MAX)) {
         return;
     }
-		tmpData = data;
-		left = len;
+
+    unsigned char* tmpData = data;
+    unsigned short left = len;
+    unsigned char seq = 0;
+    unsigned char packageNum = 0;
 
     if ((cr & HISLIP_ACK_TYPE) != 0) {
         seq = cr;
@@ -474,20 +461,18 @@ void HiSlipSendData(unsigned char* data, unsigned short len, unsigned char cr)
 /* 接收并处理数据报文, 其中返回值HISLIP_RCV_NO_DATA表示没有数据接收 */
 short HiSlipRcvData(unsigned char* data, unsigned char len)
 {
-	  unsigned char i;
-		short ret = 0;
-		unsigned short receiveLen = 0;
     if ((data == NULL) || (len == 0)) {
         return HISLIP_ERR;
     }
-    /* 接收缓存清空 */
 
+    /* 接收缓存清空 */
+    unsigned char i;
     for (i = 0; i < len; i++) {
         *(data + i) = 0;
     }
 
-    ret = HISLIP_OK;
-    receiveLen = g_hiSlipHandler.ioRcv(data, len);
+    short ret = HISLIP_OK;
+    unsigned short receiveLen = g_hiSlipHandler.ioRcv(data, len);
     if (receiveLen == 0) {
         return HISLIP_RCV_NO_DATA;
     } else {
@@ -503,7 +488,6 @@ short HiSlipRcvData(unsigned char* data, unsigned char len)
 
 void HiSlipUartInit(void)
 {
-	  unsigned char i;
     g_uartHandler.writePos = 0;
     g_uartHandler.readOverlap = 0;
     g_uartHandler.isEsc = 0;
@@ -513,7 +497,7 @@ void HiSlipUartInit(void)
     g_bufReadIndex = 0;
 
     /* 串口消息列表缓存清空 */
-
+    unsigned char i;
     for (i = 0; i < HISLIP_UART_SKB_NUM; i++) {
         g_uartHandler.skb[i].startPos = 0;
         g_uartHandler.skb[i].len = 0;

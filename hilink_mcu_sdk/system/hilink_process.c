@@ -77,18 +77,14 @@ static HiLinkFuncMatrix g_functionMatrix[HLK_RUN_STATE_MAX] = {
  */
 static void HiLinkSetKeyValChangeMark(DEV_REPORT_TYPE rptType, unsigned short idx, int setMark)
 {
-		unsigned short intPos = 0;
-		unsigned short bitPos = 0;
-		unsigned int mark = 0;
-		unsigned int* changeMask = NULL;
     if (idx >= DEV_MAX_KEY_COUNT) {
         return;
     }
 
-    intPos = idx / UNSIGNED_INT_BITS;
-    bitPos = idx % UNSIGNED_INT_BITS;
-    mark = (1 << bitPos);
-    changeMask = NULL;
+    unsigned short intPos = idx / UNSIGNED_INT_BITS;
+    unsigned short bitPos = idx % UNSIGNED_INT_BITS;
+    unsigned int mark = (1 << bitPos);
+    unsigned int* changeMask = NULL;
 
     if (rptType == RPT_BY_KEY) {
         changeMask = (unsigned int*)g_keyValChangeMark;
@@ -112,7 +108,6 @@ static void HiLinkSetKeyValChangeMark(DEV_REPORT_TYPE rptType, unsigned short id
 static int HiLinkHasKeyValChanged(DEV_REPORT_TYPE rptType)
 {
     unsigned int* changeMask = NULL;
-	  unsigned char i;
     if (rptType == RPT_BY_KEY) {
         changeMask = (unsigned int*)g_keyValChangeMark;
     } else if (rptType == RPT_BY_SVC) {
@@ -121,6 +116,7 @@ static int HiLinkHasKeyValChanged(DEV_REPORT_TYPE rptType)
         return 0;
     }
 
+    unsigned char i;
     for (i = 0; i < (DEV_MAX_KEY_COUNT / UNSIGNED_INT_BITS); i++) {
         /* 存在变化的属性 */
         if (changeMask[i] != 0) {
@@ -138,15 +134,11 @@ static int HiLinkHasKeyValChanged(DEV_REPORT_TYPE rptType)
  */
 static int HiLinkCheckChangedKeyVal(DEV_REPORT_TYPE rptType, unsigned short idx, int setMark)
 {
-		unsigned int* changeMask  = NULL;
-		unsigned short intPos = 0;
-		unsigned short bitPos = 0;
-		unsigned int mark = 0;
     if (idx >= DEV_MAX_KEY_COUNT) {
         return 0;
     }
 
-    changeMask = NULL;
+    unsigned int* changeMask = NULL;
     if (rptType == RPT_BY_KEY) {
         changeMask = (unsigned int*)g_keyValChangeMark;
     } else if (rptType == RPT_BY_SVC) {
@@ -155,9 +147,9 @@ static int HiLinkCheckChangedKeyVal(DEV_REPORT_TYPE rptType, unsigned short idx,
         return 0;
     }
 
-    intPos = idx / UNSIGNED_INT_BITS;
-    bitPos = idx % UNSIGNED_INT_BITS;
-    mark = changeMask[intPos] >> bitPos;
+    unsigned short intPos = idx / UNSIGNED_INT_BITS;
+    unsigned short bitPos = idx % UNSIGNED_INT_BITS;
+    unsigned int mark = changeMask[intPos] >> bitPos;
 
     /* 对应位属性变化, 与1表示取最低位 */
     if ((mark & 1) == DEV_KEY_MASK_SET) {
@@ -208,11 +200,12 @@ static void* HiLinkGetProfileVersion(void)
  */
 static void* HiLinkGetProfileInfoList(ProfileInfoType type, unsigned short* size)
 {
-	  unsigned short count = 0;
-    void* retAddr = NULL;
     if (size == NULL) {
         return NULL;
     }
+
+    unsigned short count = 0;
+    void* retAddr = NULL;
 
     switch (type) {
         case TYPE_SVC_MAP: /* 服务信息列表 */
@@ -402,12 +395,12 @@ static void HiLinkGetNoDataFlag(short rcvFlag, unsigned char* noDataFlag)
 static HiLinkDataType HiLinkGetKeyDataType(unsigned short keyMapId)
 {
     unsigned short keyNum = 0;
-	  unsigned short i;
     KeyInfo* keys = (KeyInfo*)HiLinkGetProfileInfoList(TYPE_KEY_MAP, &keyNum);
     if (keys == NULL) {
         return HLK_DATA_TYPE_UNKNOWN;
     }
 
+    unsigned short i;
     for (i = 0; i < keyNum; i++) {
         if (keys[i].keyMapId == keyMapId) {
             return keys[i].dataType;
@@ -424,23 +417,19 @@ static HiLinkDataType HiLinkGetKeyDataType(unsigned short keyMapId)
 static int HiLinkGeneralFillCmdPkg(unsigned short cmd, const HiLinkTlvType* tlvs,
     unsigned int tlvNum, unsigned char* outData, unsigned short* outLen)
 {
-		unsigned char* msg = NULL;
-	  unsigned short readLen = 0;
-	  unsigned int i;
-		unsigned char* val = NULL;
-		unsigned short len = 0;
-		unsigned short sendLen  = 0;
-	  unsigned short j;
     if ((outData == NULL) ||
         (outLen == NULL) ||
         ((tlvs != NULL) && (tlvNum == 0)) ||
         ((tlvs == NULL) && (tlvNum != 0))) {
         return HLK_RET_ERR;
     }
-    msg = outData;
+
+    unsigned char* msg = outData;
+    unsigned short readLen = 0;
+
     /* 填充cmd字段 */
     HiSlipFillDataEA(cmd, &readLen, msg);
-    sendLen = readLen;
+    unsigned short sendLen = readLen;
     msg += readLen;
 
     if ((tlvs == NULL) && (tlvNum == 0)) {
@@ -454,7 +443,7 @@ static int HiLinkGeneralFillCmdPkg(unsigned short cmd, const HiLinkTlvType* tlvs
     }
 
     /* 填充tlv数据 */
-
+    unsigned int i;
     for (i = 0; i < tlvNum; i++) {
         /* 填充tag字段 */
         if (tlvs[i].tag >= HLK_INVALID_VAL) {
@@ -475,13 +464,13 @@ static int HiLinkGeneralFillCmdPkg(unsigned short cmd, const HiLinkTlvType* tlvs
         msg += readLen;
 
         /* 填充val字段 */
-        val = tlvs[i].val;
-        len = tlvs[i].len;
+        unsigned char* val = tlvs[i].val;
+        unsigned short len = tlvs[i].len;
         if ((len > 0) && (val != NULL)) {
             if ((sendLen + len) > HLK_SND_BUF_SIZE) {
                 return HLK_RET_ERR;
             }
-          
+            unsigned short j;
             for (j = 0; j < len; j++) {
                 *(msg + j) = *(val + j);
             }
@@ -502,14 +491,13 @@ void HiLinkGeneralCmdSend(unsigned short cmd, const HiLinkTlvType* tlvs,
     unsigned short tlvNum, unsigned char ackSeq)
 {
     unsigned short dataLen = 0;
-		int ret = 0;
     unsigned char* tmpBuf = HiLinkGetDataSendBuf();
     if (tmpBuf == NULL) {
         return;
     }
 
     /* tlvs为NULL是合法值 */
-    ret = HiLinkGeneralFillCmdPkg(cmd, tlvs, tlvNum, tmpBuf, &dataLen);
+    int ret = HiLinkGeneralFillCmdPkg(cmd, tlvs, tlvNum, tmpBuf, &dataLen);
     if (ret == HLK_RET_OK) {
         if (ackSeq == 0) {
             HiSlipSendData(tmpBuf, dataLen, HISLIP_CMD_TYPE);
@@ -524,12 +512,8 @@ static int HiLinkFillSvcMapTlvs(unsigned short* cnt, HiLinkTlvType* tlvs)
 {
     unsigned short i;
     unsigned short svcNum = 0;
-		int offset = 0;	    
-    unsigned short tagLen = 0;
-	  char idxOffset = 0;
-		unsigned char* valBuf = NULL;
     SvcInfo* svcList = (SvcInfo*)HiLinkGetProfileInfoList(TYPE_SVC_MAP, &svcNum);
-    valBuf = HiLinkGetExtendBuf();
+    unsigned char* valBuf = HiLinkGetExtendBuf();
     if ((cnt == NULL) || (tlvs == NULL) || (svcList == NULL) || (valBuf == NULL)) {
         return HLK_RET_ERR;
     }
@@ -544,7 +528,8 @@ static int HiLinkFillSvcMapTlvs(unsigned short* cnt, HiLinkTlvType* tlvs)
         return HLK_RET_ERR;
     }
 
-
+    int offset = 0;
+    unsigned short tagLen = 0;
     for (i = 0; i < svcNum; i++) {
         if ((svcList[i].svcMapId >= HLK_INVALID_VAL) ||
             (svcList[i].svcType == NULL) ||
@@ -552,6 +537,8 @@ static int HiLinkFillSvcMapTlvs(unsigned short* cnt, HiLinkTlvType* tlvs)
             HiLinkNotifyErrorInfo(HLK_ECODE_PROFILE_SVCINST_ERR);
             return HLK_RET_ERR;
         }
+
+        char idxOffset = 0;
 
         /* 第1个字段svcMapId */
         tlvs[i * SVC_INFO_ITEM_NUM].tag = HLK_TAG_PROT_SVCINF;
@@ -582,12 +569,8 @@ static int HiLinkFillKeyMapTlvs(unsigned short* cnt, HiLinkTlvType* tlvs)
 {
     unsigned short i;
     unsigned short keyNum = 0;
-    int offset = 0;
-    unsigned short tagLen = 0;
-    char idxOffset = 0;
-		unsigned char* valBuf = NULL;
     KeyInfo* keys = (KeyInfo*)HiLinkGetProfileInfoList(TYPE_KEY_MAP, &keyNum);
-		valBuf = HiLinkGetExtendBuf();
+    unsigned char* valBuf = HiLinkGetExtendBuf();
     if ((cnt == NULL) || (tlvs == NULL) || (keys == NULL) || (valBuf == NULL)) {
         return HLK_RET_ERR;
     }
@@ -602,6 +585,8 @@ static int HiLinkFillKeyMapTlvs(unsigned short* cnt, HiLinkTlvType* tlvs)
         return HLK_RET_ERR;
     }
 
+    int offset = 0;
+    unsigned short tagLen = 0;
     for (i = 0; i < keyNum; i++) {
         if ((keys[i].keyMapId >= HLK_INVALID_VAL) ||
             (keys[i].svcType == NULL) ||
@@ -610,6 +595,7 @@ static int HiLinkFillKeyMapTlvs(unsigned short* cnt, HiLinkTlvType* tlvs)
             return HLK_RET_ERR;
         }
 
+        char idxOffset = 0;
 
         /* 第1个字段keyMapId */
         tlvs[i * KEY_INFO_ITEM_NUM].tag = HLK_TAG_PROT_ITEM;
@@ -644,12 +630,12 @@ static int HiLinkFillKeyMapTlvs(unsigned short* cnt, HiLinkTlvType* tlvs)
 
 static void HiLinkIntToCharArray(int val, int len, unsigned char* buf)
 {
-		unsigned int value = 0;
-	  unsigned char idx = 0;
     if ((buf == NULL) || (len < UNSIGNED_INT_BYTES)) {
         return;
     }
-    value = (unsigned int)val;
+
+    unsigned int value = (unsigned int)val;
+    unsigned char idx = 0;
     buf[idx] = (unsigned char)((value >> ((UNSIGNED_INT_BYTES - 1) * UNSIGNED_CHAR_BITS)) & LOW_BYTE_FLAG);
     idx++;
     buf[idx] = (unsigned char)((value >> (((UNSIGNED_INT_BYTES - idx) - 1) * UNSIGNED_CHAR_BITS)) & LOW_BYTE_FLAG);
@@ -661,12 +647,12 @@ static void HiLinkIntToCharArray(int val, int len, unsigned char* buf)
 
 static void HiLinkCharArrayToInt(const unsigned char* buf, int len, int* value)
 {
-	  unsigned char idx = 0;
-		int val = 0;
     if ((buf == NULL) || (value == NULL) || (len < UNSIGNED_INT_BYTES)) {
         return;
     }
-    val = buf[idx] << ((UNSIGNED_INT_BYTES - 1) * UNSIGNED_CHAR_BITS);
+
+    unsigned char idx = 0;
+    int val = buf[idx] << ((UNSIGNED_INT_BYTES - 1) * UNSIGNED_CHAR_BITS);
     idx++;
     val += buf[idx] << (((UNSIGNED_INT_BYTES - idx) - 1) * UNSIGNED_CHAR_BITS);
     idx++;
@@ -685,17 +671,18 @@ static int HiLinkFillSvcTlvs(unsigned short svcMapId, unsigned short keyMapId,
 {
     unsigned short cnt = 0;
     unsigned char* valBuf = HiLinkGetExtendBuf();
-	  unsigned short num = 0;
-    unsigned short readLen = 0;
-    unsigned short outLen = 0;
-    int offset = 0;
-    unsigned short i;
-		HiLinkDataType dataType ;
     HiLinkMsg* keyVals = (HiLinkMsg*)HiLinkGetProfileInfoList(TYPE_MSG_TABLE, &cnt);
 
     if ((tlvs == NULL) || (keyNum == NULL) || (dataLen == NULL) || (keyVals == NULL) || (valBuf == NULL)) {
         return HLK_RET_ERR;
     }
+
+    unsigned short num = 0;
+    unsigned short readLen = 0;
+    unsigned short outLen = 0;
+    int offset = 0;
+    unsigned short i;
+
     for (i = 0; i < cnt; i++) {
         /* keyMapId为invalid值表示填充模组GET命令或上报全部服务属性值的返回报文 */
         if ((keyVals[i].msgInfo.svcMapId != svcMapId) ||
@@ -707,7 +694,7 @@ static int HiLinkFillSvcTlvs(unsigned short svcMapId, unsigned short keyMapId,
         HiSlipFillDataEA(tlvs[num].tag, &readLen, NULL);
         outLen += readLen;
 
-        dataType = HiLinkGetKeyDataType(keyVals[i].msgInfo.keyMapId);
+        HiLinkDataType dataType = HiLinkGetKeyDataType(keyVals[i].msgInfo.keyMapId);
         switch (dataType) {
             case HLK_DATA_TYPE_INT:
             case HLK_DATA_TYPE_BOOL:
@@ -752,17 +739,14 @@ static int HiLinkFillSvcTlvs(unsigned short svcMapId, unsigned short keyMapId,
  */
 static unsigned char* HiLinkGeneralParseTlv(unsigned char* inBuf, HiLinkTlvType* tlv)
 {
-	  unsigned short readLen = 0;
-		unsigned char* val = NULL;
-		unsigned char* msg = NULL;
-		short tag = 0;
-		short len = 0;
     if (inBuf == NULL) {
         return NULL;
     }
-		val = NULL;
-		msg = inBuf;
-		tag = HiSlipParseDataEA(msg, &readLen);
+
+    unsigned short readLen = 0;
+    unsigned char* val = NULL;
+    unsigned char* msg = inBuf;
+    short tag = HiSlipParseDataEA(msg, &readLen);
     if (tag == HISLIP_ERR) {
         HiLinkNotifyErrorInfo(HLK_ECODE_RCV_TAG_ERR);
         return NULL;
@@ -770,7 +754,7 @@ static unsigned char* HiLinkGeneralParseTlv(unsigned char* inBuf, HiLinkTlvType*
     msg += readLen;
     readLen = 0;
 
-    len = HiSlipParseDataEA(msg, &readLen);
+    short len = HiSlipParseDataEA(msg, &readLen);
     if (len == HISLIP_ERR) {
         HiLinkNotifyErrorInfo(HLK_ECODE_RCV_LEN_ERR);
         return NULL;
@@ -794,17 +778,15 @@ static unsigned char* HiLinkGeneralParseTlv(unsigned char* inBuf, HiLinkTlvType*
 /* 功能: 发送消息上报具体服务属性值 */
 static void HiLinkReportSvcKeyVals(unsigned short svcMapId, unsigned short keyMapId)
 {
-	
-    unsigned short keyNum = 0;
-    unsigned short dataLen = 0;
-		int ret = 0;
     HiLinkTlvType* msg = HiLinkGetTmpTlvArray();
     if (msg == NULL) {
         return;
     }
 
+    unsigned short keyNum = 0;
+    unsigned short dataLen = 0;
     /* 1表示从第2个TLV开始填充属性信息 */
-    ret = HiLinkFillSvcTlvs(svcMapId, keyMapId, &msg[1], &keyNum, &dataLen);
+    int ret = HiLinkFillSvcTlvs(svcMapId, keyMapId, &msg[1], &keyNum, &dataLen);
     if (ret == HLK_RET_OK) {
         /* 0表示第1个TLV填充服务映射ID字段 */
         msg[0].tag = svcMapId;
@@ -834,15 +816,14 @@ static void HiLinkReportChangedKeyVals(unsigned short idx)
  */
 static short HiLinkCommonWaitAck(unsigned short cmd, unsigned long long startTick)
 {
-		unsigned char seq = 0;
     unsigned long long curTick = HiLinkGetSysCurTime();
-		LastAckInfo lastAck = { 0, 0 };
     if ((curTick > startTick) && ((curTick - startTick) >= ACK_TIMEOUT_VALUE)) {
         return ACK_STATE_ACKTIMOUT;
     }
-		
+
+    LastAckInfo lastAck = { 0, 0 };
     HiSlipGetLastAckInfo(&lastAck);
-    seq = HiLinkGetCurWaitAckSeq();
+    unsigned char seq = HiLinkGetCurWaitAckSeq();
     if ((lastAck.cmd == cmd) && (lastAck.seq == seq)) {
         return ACK_STATE_ACKED;
     }
@@ -866,11 +847,10 @@ static short HiLinkReqGetNetStatus(void)
 
 static short HiLinkReqRegStart(void)
 {
-		unsigned char* profileVer = NULL;
     HiLinkTlvType msg[REG_FLAG_ITEM_NUM + PROFILE_VER_ITEM_NUM]; /* 设备注册状态和协议版本号 */
     ProfileRegStatus regStatus = HLK_REG_START;
 
-    profileVer = (unsigned char*)HiLinkGetProfileVersion();
+    unsigned char* profileVer = (unsigned char*)HiLinkGetProfileVersion();
     if (profileVer == NULL) {
         return HLK_RET_ERR;
     }
@@ -892,11 +872,9 @@ static short HiLinkReqRegStart(void)
 
 static short HiLinkReqRegAcBi(void)
 {
-		unsigned char* bi = NULL;
-		unsigned char* ac = NULL;
     HiLinkTlvType msg[DEV_AC_ITEM_NUM + DEV_BI_ITEM_NUM];
-    bi = (unsigned char*)HiLinkGetDeviceBi();
-    ac = (unsigned char*)HiLinkGetDeviceAc();
+    unsigned char* bi = (unsigned char*)HiLinkGetDeviceBi();
+    unsigned char* ac = (unsigned char*)HiLinkGetDeviceAc();
 
     if ((bi == NULL) || (ac == NULL)) {
         return HLK_RET_ERR;
@@ -922,12 +900,11 @@ static short HiLinkReqRegDevInfo(void)
     HiLinkTlvType msg[DEV_INFO_ITEM_NUM + DEV_NAME_ITEM_NUM];
     char devSn[DEV_SN_MAX_LEN] = {0};
     char msgIdx = 0; /* 消息TLV数组下标 */
-		DevEnName* devNameEn = NULL;
     DevInfo* devInfo = (DevInfo*)HiLinkGetDeviceInfo();
     if (devInfo == NULL) {
         return HLK_RET_ERR;
     }
-    devNameEn = (DevEnName*)HiLinkGetDeviceEnName();
+    DevEnName* devNameEn = (DevEnName*)HiLinkGetDeviceEnName();
     if (devNameEn == NULL) {
         return HLK_RET_ERR;
     }
@@ -994,14 +971,13 @@ static short HiLinkReqRegDevInfo(void)
 
 static short HiLinkReqRegSvcInfo(void)
 {
-	  unsigned short itemNum = 0;
-		int ret = 0;
-		HiLinkTlvType* serviceInfo = HiLinkGetTmpTlvArray();
+    HiLinkTlvType* serviceInfo = HiLinkGetTmpTlvArray();
     if (serviceInfo == NULL) {
         return HLK_RET_ERR;
     }
-		
-    ret = HiLinkFillSvcMapTlvs(&itemNum, serviceInfo);
+
+    unsigned short itemNum = 0;
+    int ret = HiLinkFillSvcMapTlvs(&itemNum, serviceInfo);
     if (ret == HLK_RET_OK) {
         HiLinkGeneralCmdSend(HLK_CMD_DEVREG_SVCINFO, serviceInfo, itemNum, HISLIP_CMD_TYPE);
         return HLK_RET_OK;
@@ -1011,14 +987,13 @@ static short HiLinkReqRegSvcInfo(void)
 
 static short HiLinkReqRegKeyMap(void)
 {
-	  unsigned short itemNum = 0;
-		int ret = 0;
     HiLinkTlvType* msg = HiLinkGetTmpTlvArray();
     if (msg == NULL) {
         return HLK_RET_ERR;
     }
 
-    ret = HiLinkFillKeyMapTlvs(&itemNum, msg);
+    unsigned short itemNum = 0;
+    int ret = HiLinkFillKeyMapTlvs(&itemNum, msg);
     if (ret == HLK_RET_OK) {
         HiLinkGeneralCmdSend(HLK_CMD_DEVREG_PROT, msg, itemNum, HISLIP_CMD_TYPE);
         return HLK_RET_OK;
@@ -1041,7 +1016,6 @@ static short HiLinkReqRegEnd(void)
 static short HiLinkSetWorkMode(void)
 {
     unsigned char workMode = 0;
-	  HiLinkTlvType msg;
     ModuleNetStatus netStatus = HiLinkGetLocalNetStatus();
     switch (netStatus) {
         case NET_NOAP:
@@ -1054,7 +1028,8 @@ static short HiLinkSetWorkMode(void)
             workMode = (unsigned char)HiLinkGetLocalWorkMode();
             break;
     }
-		
+
+    HiLinkTlvType msg;
     msg.tag = HLK_TAG_WK_MD;
     msg.len = HISLIP_PARAM_VAL_LEN;
     msg.val = &workMode;
@@ -1128,12 +1103,12 @@ static short HiLinkProcessStageFunc(const HiLinkReqFuncs* stageFunc, unsigned sh
 {
     short ret = HLK_RET_OK;
     static unsigned long long curTick = 0;
-		HiLinkCmdState cmdState;
+
     if (stageFunc == NULL) {
         return HLK_RET_ERR;
     }
 
-    cmdState = HiLinkGetFuncProcState();
+    HiLinkCmdState cmdState = HiLinkGetFuncProcState();
     if (cmdState == FUNC_PROC_STATE_SNDCMD) {
         ret = stageFunc[idx].sendReqFunc();
         if (ret == HLK_RET_NEXTSTAGE) {
@@ -1219,18 +1194,17 @@ static short HiLinkProcessMaxtrixFuncs(HiLinkFuncMatrix* funcMatrix)
 {
     ModuleWorkMode workMode;
     ModuleNetStatus netStatus;
-		short funcIdx = 0;
-		short ret = 0;
+
     if (funcMatrix == NULL) {
         return HLK_RET_ERR;
     }
 
-    funcIdx = HiLinkGetCurMatrixFuncIndex(funcMatrix);
+    short funcIdx = HiLinkGetCurMatrixFuncIndex(funcMatrix);
     if ((funcIdx < 0) || (funcIdx >= funcMatrix->funcNum)) {
         return HLK_RET_ERR;
     }
 
-    ret = HiLinkProcessStageFunc(funcMatrix->reqFuncs, (unsigned short)funcIdx);
+    short ret = HiLinkProcessStageFunc(funcMatrix->reqFuncs, (unsigned short)funcIdx);
     if (ret == HLK_RET_OK) {
         ret = HiLinkChangeMatrixFuncIndex(funcMatrix);
         if (ret == HLK_RET_NEXTSTAGE) {
@@ -1294,44 +1268,33 @@ static short HiLinkProcessInternalStates(short rcvFlag)
 /* 处理模组侧PUT命令的设备控制消息 */
 static void HiLinkPutSvcKeyVal(unsigned char* message, unsigned short len)
 {
-		unsigned char* next = NULL;
-		unsigned short keyMapId = 0;
-		unsigned short msgNum = 0;
-	  unsigned short i;
-		char* strAddr = NULL;
-	  unsigned short j;
-	  HiLinkTlvType parseMsg = { 0, 0, NULL };
-		unsigned short svcMapId = 0;
-		HiLinkMsg* keyVals = NULL;
-		bool isValueType;
-		int value = 0;
-		HiLinkDataType dataType;
     if ((message == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
 
     /* 获取服务mapid */
-
-    next = HiLinkGeneralParseTlv(message, &parseMsg);
+    HiLinkTlvType parseMsg = { 0, 0, NULL };
+    unsigned char* next = HiLinkGeneralParseTlv(message, &parseMsg);
     if (next == NULL) {
         return;
     }
-		svcMapId = parseMsg.tag;
+    unsigned short svcMapId = parseMsg.tag;
     next = parseMsg.val;
 
     /* 获取属性mapid */
     if (HiLinkGeneralParseTlv(next, &parseMsg) == NULL) {
         return;
     }
-    keyMapId = parseMsg.tag;
+    unsigned short keyMapId = parseMsg.tag;
 
     /* 获取消息内容 */
-    keyVals = (HiLinkMsg*)HiLinkGetProfileInfoList(TYPE_MSG_TABLE, &msgNum);
+    unsigned short msgNum = 0;
+    HiLinkMsg* keyVals = (HiLinkMsg*)HiLinkGetProfileInfoList(TYPE_MSG_TABLE, &msgNum);
     if (keyVals == NULL) {
         return;
     }
 
-
+    unsigned short i;
     for (i = 0; i < msgNum; i++) {
         if ((keyVals[i].msgInfo.keyMapId != keyMapId) || (keyVals[i].msgInfo.svcMapId != svcMapId)) {
             continue;
@@ -1339,20 +1302,20 @@ static void HiLinkPutSvcKeyVal(unsigned char* message, unsigned short len)
         if (keyVals[i].msgFunc == NULL) {
             return;
         }
-        dataType = HiLinkGetKeyDataType(keyMapId);
-        isValueType = (dataType == HLK_DATA_TYPE_INT) || (dataType == HLK_DATA_TYPE_BOOL);
+        HiLinkDataType dataType = HiLinkGetKeyDataType(keyMapId);
+        bool isValueType = (dataType == HLK_DATA_TYPE_INT) || (dataType == HLK_DATA_TYPE_BOOL);
         if ((isValueType == true) && (parseMsg.len >= UNSIGNED_INT_BYTES)) {
-
+            int value = 0;
             /* int类型需要将网络字节序的4个字节数据转换成整型 */
             HiLinkCharArrayToInt(parseMsg.val, parseMsg.len, &value);
             keyVals[i].msgFunc(value);
         } else if ((dataType == HLK_DATA_TYPE_STR) && (parseMsg.len > 0) && (parseMsg.len <= STR_KEY_MAX_LEN)) {
-            strAddr = (char*)malloc(parseMsg.len + 1);
+            char* strAddr = (char*)malloc(parseMsg.len + 1);
             if (strAddr == NULL) {
                 return;
             }
             /* malloc内存后紧接着赋值, 无需重复清零初始化 */
-          
+            unsigned short j;
             for (j = 0; j < parseMsg.len; j++) {
                 *(strAddr + j) = *(parseMsg.val + j);
             }
@@ -1369,29 +1332,26 @@ static void HiLinkPutSvcKeyVal(unsigned char* message, unsigned short len)
 /* 处理模组侧GET命令的服务属性值查询消息 */
 static void HiLinkGetSvcKeyVals(unsigned char seq, unsigned char* message, unsigned short len)
 {
-	  unsigned short svcMapId = 0;
-    unsigned short keyNum = 0;
-    unsigned short dataLen = 0;
-		unsigned char* next = NULL;
-    HiLinkTlvType service = { 0, 0, NULL };
-		HiLinkTlvType* package = NULL;
-		int ret = 0;
     if ((message == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
 
-		next = HiLinkGeneralParseTlv(message, &service);
+    unsigned short svcMapId = 0;
+    unsigned short keyNum = 0;
+    unsigned short dataLen = 0;
+    HiLinkTlvType service = { 0, 0, NULL };
+    unsigned char* next = HiLinkGeneralParseTlv(message, &service);
     if (next != NULL) {
         svcMapId = service.tag;
     }
 
-    package = HiLinkGetTmpTlvArray();
+    HiLinkTlvType* package = HiLinkGetTmpTlvArray();
     if (package == NULL) {
         return;
     }
 
     /* 1表示从第2个TLV开始填充属性信息列表 */
-    ret = HiLinkFillSvcTlvs(svcMapId, HLK_INVALID_VAL, &package[1], &keyNum, &dataLen);
+    int ret = HiLinkFillSvcTlvs(svcMapId, HLK_INVALID_VAL, &package[1], &keyNum, &dataLen);
     if (ret == HLK_RET_OK) {
         /* 0表示第1个TLV填充服务映射ID字段 */
         package[0].tag = svcMapId;
@@ -1412,14 +1372,13 @@ static void HiLinkFuncMatrixReinit(void)
 
 static void HiLinkUpdateWorkMode(const unsigned char* buf, unsigned short len)
 {
-	  unsigned short readLen = 0;
-    int offset = 0;
-	  short data = 0;
-		ModuleWorkMode workMode;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
-		data = HiSlipParseDataEA(buf, &readLen);
+
+    unsigned short readLen = 0;
+    int offset = 0;
+    short data = HiSlipParseDataEA(buf, &readLen);
     offset += readLen;
     switch (data) {
         case HLK_TAG_WK_MD:
@@ -1444,7 +1403,7 @@ static void HiLinkUpdateWorkMode(const unsigned char* buf, unsigned short len)
         return;
     }
 
-    workMode = (ModuleWorkMode)(*(buf + offset));
+    ModuleWorkMode workMode = (ModuleWorkMode)(*(buf + offset));
     switch (workMode) {
         case WKMD_OFFLINE:
         case WKMD_AUTOAP:
@@ -1472,15 +1431,14 @@ static void HiLinkUpdateWorkMode(const unsigned char* buf, unsigned short len)
  */
 static void HiLinkFactoryResetResult(const unsigned char* buf, unsigned short len)
 {
-	  unsigned short readLen = 0;
-    int offset = 0;
-		short data = 0;
-		HiLinkOperateResult result;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
+
+    unsigned short readLen = 0;
+    int offset = 0;
     /* Tag字段 */
-    data = HiSlipParseDataEA(buf, &readLen);
+    short data = HiSlipParseDataEA(buf, &readLen);
     offset += readLen;
     if ((data != HLK_TAG_OP_RLT) || (offset >= len)) {
         return;
@@ -1494,7 +1452,7 @@ static void HiLinkFactoryResetResult(const unsigned char* buf, unsigned short le
     }
 
     /* 获取操作结果值, 占用一个字节 */
-    result = (HiLinkOperateResult)(*(buf + offset));
+    HiLinkOperateResult result = (HiLinkOperateResult)(*(buf + offset));
     if (result == HLK_RSLT_OK) {
         HiLinkDevRemoved();
     }
@@ -1502,14 +1460,13 @@ static void HiLinkFactoryResetResult(const unsigned char* buf, unsigned short le
 
 static void HiLinkUpdateNetStatus(const unsigned char* buf, unsigned short len)
 {
-	  unsigned short readLen = 0;
-    int offset = 0;
-		short data = 0;
-		ModuleNetStatus netStatus ;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
-		data = HiSlipParseDataEA(buf, &readLen);
+
+    unsigned short readLen = 0;
+    int offset = 0;
+    short data = HiSlipParseDataEA(buf, &readLen);
     offset += readLen;
     switch (data) {
         case HLK_TAG_MD_NST:
@@ -1534,7 +1491,7 @@ static void HiLinkUpdateNetStatus(const unsigned char* buf, unsigned short len)
         return;
     }
 
-    netStatus = (ModuleNetStatus)(*(buf + offset));
+    ModuleNetStatus netStatus = (ModuleNetStatus)(*(buf + offset));
     HiLinkSetLocalNetStatus(netStatus);
 }
 
@@ -1548,13 +1505,14 @@ static void HiLinkSetRegFuncIndex(void)
 /* 检查设备profile是否注册标识 */
 static void HiLinkCheckRegFlag(const unsigned char* buf, unsigned short len)
 {
-	  unsigned short readLen = 0;
-    short dataLen = 0;
-    short tag = 0;
-    int offset = 0;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
+
+    unsigned short readLen = 0;
+    short dataLen = 0;
+    short tag = 0;
+    int offset = 0;
 
     while (offset < len) {
         tag = HiSlipParseDataEA((buf + offset), &readLen);
@@ -1599,25 +1557,22 @@ static void HiLinkNotifUpgradeInfo(unsigned char seq, unsigned short cmd,
 static void HiLinkCheckUpgrade(unsigned char seq, unsigned short cmd,
     const unsigned char* buf, unsigned short len)
 {
-		short ret = 0;
-		int offset = 0;
-    unsigned short readLen = 0;
-		short tag = 0;
-		short length = 0;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
 
-		ret = HLK_RET_ERR;
-    
-    tag = HiSlipParseDataEA(buf, &readLen);
+    short ret = HLK_RET_ERR;
+    int offset = 0;
+    unsigned short readLen = 0;
+
+    short tag = HiSlipParseDataEA(buf, &readLen);
     offset += readLen;
     if (tag != HLK_TAG_DEV_SVER) {
         HiSlipSendAckMsg(seq, cmd, ret);
         return;
     }
 
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     offset += readLen;
     if ((length <= 0) || ((offset + length) > len)) {
         HiSlipSendAckMsg(seq, cmd, ret);
@@ -1640,25 +1595,21 @@ static void HiLinkCheckUpgrade(unsigned char seq, unsigned short cmd,
 static void HiLinkStartUpgrade(unsigned char seq, unsigned short cmd,
     const unsigned char* buf, unsigned short len)
 {
-		short ret = 0;
-	  int offset = 0;
-    unsigned short readLen = 0;
-		short tag = 0;
-		short length  = 0;
-	  int size = 0;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
 
-    ret = HLK_RET_ERR;
-		tag = HiSlipParseDataEA(buf, &readLen);
+    short ret = HLK_RET_ERR;
+    int offset = 0;
+    unsigned short readLen = 0;
+    short tag = HiSlipParseDataEA(buf, &readLen);
     offset += readLen;
     if (tag != HLK_TAG_DEV_BIN_SIZE) {
         HiSlipSendAckMsg(seq, cmd, ret);
         return;
     }
 
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     offset += readLen;
     if ((length != OTA_BIN_SIZE_LEN) || ((offset + OTA_BIN_SIZE_LEN) > len)) {
         HiSlipSendAckMsg(seq, cmd, ret);
@@ -1666,7 +1617,7 @@ static void HiLinkStartUpgrade(unsigned char seq, unsigned short cmd,
     }
 
     /* size变量是int类型, 需要将网络字节序的4个字节数据转换成整型 */
-
+    int size = 0;
     HiLinkCharArrayToInt((buf + offset), length, &size);
     ret = HiLinkOtaStart((unsigned int)size);
     HiSlipSendAckMsg(seq, cmd, ret);
@@ -1679,24 +1630,21 @@ static void HiLinkStartUpgrade(unsigned char seq, unsigned short cmd,
 static void HiLinkRcvUpgradeData(unsigned char seq, unsigned short cmd,
     const unsigned char* buf, unsigned short len)
 {
-		short ret = 0;
-	  int offset = 0;
-    unsigned short readLen = 0;
-		short tag = 0;
-		short length = 0;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
 
-    ret = HLK_RET_ERR;
-		tag = HiSlipParseDataEA(buf, &readLen);
+    short ret = HLK_RET_ERR;
+    int offset = 0;
+    unsigned short readLen = 0;
+    short tag = HiSlipParseDataEA(buf, &readLen);
     offset += readLen;
     if (tag != HLK_TAG_DEV_BIN_DATA) {
         HiSlipSendAckMsg(seq, cmd, ret);
         return;
     }
 
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     offset += readLen;
     if ((length <= 0) || (length > OTA_ONE_PKG_LEN) || ((offset + length) > len)) {
         HiSlipSendAckMsg(seq, cmd, ret);
@@ -1719,22 +1667,21 @@ static void HiLinkRcvUpgradeData(unsigned char seq, unsigned short cmd,
 static void HiLinkEndUpgrade(unsigned char seq, unsigned short cmd,
     const unsigned char* buf, unsigned short len)
 {
-		short ret  = HLK_RET_ERR;
-	  int offset = 0;
-    unsigned short readLen = 0;
-		short tag = 0;
-		short length = 0;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
-		tag = HiSlipParseDataEA(buf, &readLen);
+
+    short ret = HLK_RET_ERR;
+    int offset = 0;
+    unsigned short readLen = 0;
+    short tag = HiSlipParseDataEA(buf, &readLen);
     offset += readLen;
     if (tag != HLK_TAG_DEV_BIN_CHK) {
         HiSlipSendAckMsg(seq, cmd, ret);
         return;
     }
 
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     offset += readLen;
     if ((length <= 0) || ((offset + length) > len)) {
         HiSlipSendAckMsg(seq, cmd, ret);
@@ -1829,24 +1776,22 @@ static void HiLinkFreeModuleInfo(ModuleWifiInfo* moduleInfo)
  */
 static int HiLinkParseMac(const unsigned char* buf, ModuleWifiInfo* moduleInfo)
 {
-	  unsigned short readLen = 0;
-    int offset = 0;
-		short tag = 0;
-		short length = 0;
-	  unsigned char i;
     if ((buf == NULL) || (moduleInfo == NULL)) {
         return HLK_RET_ERR;
     }
 
+    unsigned short readLen = 0;
+    int offset = 0;
+
     /* MAC:tag字段 */
-		tag = HiSlipParseDataEA(buf, &readLen);
+    short tag = HiSlipParseDataEA(buf, &readLen);
     if (tag != HLK_TAG_FINFO_MAC) {
         return HLK_RET_ERR;
     }
     offset += readLen;
 
     /* MAC:length字段 */
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     if (length != DEV_MAC_LEN) {
         return HLK_RET_ERR;
     }
@@ -1858,7 +1803,7 @@ static int HiLinkParseMac(const unsigned char* buf, ModuleWifiInfo* moduleInfo)
         return HLK_RET_ERR;
     }
     /* malloc内存后紧接着赋值, 无需重复清零初始化 */
-
+    unsigned char i;
     for (i = 0; i < DEV_MAC_LEN; i++) {
         *(moduleInfo->mac + i) = *(buf + offset + i);
     }
@@ -1872,25 +1817,22 @@ static int HiLinkParseMac(const unsigned char* buf, ModuleWifiInfo* moduleInfo)
  */
 static int HiLinkParseHardVer(const unsigned char* buf, ModuleWifiInfo* moduleInfo)
 {
-	
-    unsigned short readLen = 0;
-    int offset = 0;
-		short tag = 0;
-		short length = 0;
-	  short i;
     if ((buf == NULL) || (moduleInfo == NULL)) {
         return HLK_RET_ERR;
     }
 
+    unsigned short readLen = 0;
+    int offset = 0;
+
     /* HardwareVer:tag字段 */
-    tag = HiSlipParseDataEA(buf, &readLen);
+    short tag = HiSlipParseDataEA(buf, &readLen);
     if (tag != HLK_TAG_FINFO_HW) {
         return HLK_RET_ERR;
     }
     offset += readLen;
 
     /* HardwareVer:length字段 */
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     if ((length <= 0) || (length >= MODULE_INFO_FIELD_MAX_LEN)) {
         return HLK_RET_ERR;
     }
@@ -1902,7 +1844,7 @@ static int HiLinkParseHardVer(const unsigned char* buf, ModuleWifiInfo* moduleIn
         return HLK_RET_ERR;
     }
     /* malloc内存后紧接着赋值, 无需重复清零初始化 */
-
+    short i;
     for (i = 0; i < length; i++) {
         *(moduleInfo->hardVer + i) = *(buf + offset + i);
     }
@@ -1917,23 +1859,22 @@ static int HiLinkParseHardVer(const unsigned char* buf, ModuleWifiInfo* moduleIn
  */
 static int HiLinkParseSoftVer(const unsigned char* buf, ModuleWifiInfo* moduleInfo)
 {
-	  unsigned short readLen = 0;
-    int offset = 0;
-		short tag = 0;
-		short length = 0;
-	  short i;
     if ((buf == NULL) || (moduleInfo == NULL)) {
         return HLK_RET_ERR;
     }
+
+    unsigned short readLen = 0;
+    int offset = 0;
+
     /* SoftwareVer:tag字段 */
-    tag = HiSlipParseDataEA(buf, &readLen);
+    short tag = HiSlipParseDataEA(buf, &readLen);
     if (tag != HLK_TAG_FINFO_FW) {
         return HLK_RET_ERR;
     }
     offset += readLen;
 
     /* SoftwareVer:length字段 */
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     if ((length <= 0) || (length >= MODULE_INFO_FIELD_MAX_LEN)) {
         return HLK_RET_ERR;
     }
@@ -1945,7 +1886,7 @@ static int HiLinkParseSoftVer(const unsigned char* buf, ModuleWifiInfo* moduleIn
         return HLK_RET_ERR;
     }
     /* malloc内存后紧接着赋值, 无需重复清零初始化 */
- 
+    short i;
     for (i = 0; i < length; i++) {
         *(moduleInfo->softVer + i) = *(buf + offset + i);
     }
@@ -1960,33 +1901,29 @@ static int HiLinkParseSoftVer(const unsigned char* buf, ModuleWifiInfo* moduleIn
  */
 static int HiLinkParseRssi(const unsigned char* buf, ModuleWifiInfo* moduleInfo)
 {
-	
-    unsigned short readLen = 0;
-    int offset = 0;
-		short tag = 0;
-	  int value = 0;
-		short length = 0;
-		if ((buf == NULL) || (moduleInfo == NULL)) {
+    if ((buf == NULL) || (moduleInfo == NULL)) {
         return HLK_RET_ERR;
     }
 
+    unsigned short readLen = 0;
+    int offset = 0;
 
     /* Rssi:tag字段 */
-    tag = HiSlipParseDataEA(buf, &readLen);
+    short tag = HiSlipParseDataEA(buf, &readLen);
     if (tag != HLK_TAG_FINFO_APRSSI) {
         return HLK_RET_ERR;
     }
     offset += readLen;
 
     /* Rssi:length字段 */
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     if (length != WIFI_RSSI_LEN) {
         return HLK_RET_ERR;
     }
     offset += readLen;
 
     /* Rssi:value rssi是int类型, 需要将网络字节序的4个字节数据转换成整型 */
-   
+    int value = 0;
     HiLinkCharArrayToInt((buf + offset), length, &value);
     moduleInfo->rssi = value;
     offset += length;
@@ -1999,24 +1936,22 @@ static int HiLinkParseRssi(const unsigned char* buf, ModuleWifiInfo* moduleInfo)
  */
 static int HiLinkParseApName(const unsigned char* buf, ModuleWifiInfo* moduleInfo)
 {
-	  unsigned short readLen = 0;
-    int offset = 0;
-		short tag = 0;
-	  short i;
-		short length = 0;
     if ((buf == NULL) || (moduleInfo == NULL)) {
         return HLK_RET_ERR;
     }
 
+    unsigned short readLen = 0;
+    int offset = 0;
+
     /* ApName:tag字段 */
-		tag = HiSlipParseDataEA(buf, &readLen);
+    short tag = HiSlipParseDataEA(buf, &readLen);
     if (tag != HLK_TAG_FINFO_AP) {
         return HLK_RET_ERR;
     }
     offset += readLen;
 
     /* ApName:length字段 */
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     if ((length <= 0) || (length >= MODULE_INFO_FIELD_MAX_LEN)) {
         return HLK_RET_ERR;
     }
@@ -2028,7 +1963,7 @@ static int HiLinkParseApName(const unsigned char* buf, ModuleWifiInfo* moduleInf
         return HLK_RET_ERR;
     }
     /* malloc内存后紧接着赋值, 无需重复清零初始化 */
-
+    short i;
     for (i = 0; i < length; i++) {
         *(moduleInfo->apName + i) = *(buf + offset + i);
     }
@@ -2043,12 +1978,12 @@ static int HiLinkParseApName(const unsigned char* buf, ModuleWifiInfo* moduleInf
  */
 static int HiLinkParseModuleInfo(const unsigned char* buf, int len, ModuleWifiInfo* moduleInfo)
 {
-		int offset = 0;
-		int ret = 0;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN) || (moduleInfo == NULL)) {
         return HLK_RET_ERR;
     }
-		ret = HiLinkParseMac(buf, moduleInfo);
+
+    int offset = 0;
+    int ret = HiLinkParseMac(buf, moduleInfo);
     if (ret == HLK_RET_ERR) {
         HiLinkFreeModuleInfo(moduleInfo);
         return HLK_RET_ERR;
@@ -2091,11 +2026,11 @@ static int HiLinkParseModuleInfo(const unsigned char* buf, int len, ModuleWifiIn
  */
 static void HiLinkHandleModuleInfo(const unsigned char* buf, int len)
 {
-		ModuleWifiInfo moduleInfo = { NULL, NULL, NULL, 0, NULL };
     if ((buf == NULL) || (len == 0)) {
         return;
     }
-   
+
+    ModuleWifiInfo moduleInfo = { NULL, NULL, NULL, 0, NULL };
     /* 模组信息解析 */
     if (HiLinkParseModuleInfo(buf, len, &moduleInfo) != HLK_RET_OK) {
         return;
@@ -2112,23 +2047,22 @@ static void HiLinkHandleModuleInfo(const unsigned char* buf, int len)
 /* 处理模组传来的UTC时间信息. */
 static void HiLinkUpdateUtcTime(const unsigned char* buf, unsigned short len)
 {
-	  unsigned short readLen = 0;
-    int offset = 0;
-		short tag = 0;
-	  short length = 0;
     if ((buf == NULL) || (len < HISLIP_FRAME_MIN_LEN)) {
         return;
     }
 
+    unsigned short readLen = 0;
+    int offset = 0;
+
     /* tag字段 */
-    tag = HiSlipParseDataEA(buf, &readLen);
+    short tag = HiSlipParseDataEA(buf, &readLen);
     if (tag != HLK_TAG_UTC) {
         return;
     }
     offset += readLen;
 
     /* length字段 */
-    length = HiSlipParseDataEA((buf + offset), &readLen);
+    short length = HiSlipParseDataEA((buf + offset), &readLen);
     if ((length != UTC_TIME_BUF_LEN) || (len < (offset + readLen + UTC_TIME_BUF_LEN))) {
         return;
     }
@@ -2231,13 +2165,12 @@ void HiLinkGetUtcTime(void)
 static short HiLinkGetSvcIdxBySvcMapId(unsigned short svcMapId)
 {
     unsigned short itemNum = 0;
-	  unsigned short i;
     SvcInfo* services = (SvcInfo*)HiLinkGetProfileInfoList(TYPE_SVC_MAP, &itemNum);
     if (services == NULL) {
         return HLK_RET_ERR;
     }
 
- 
+    unsigned short i;
     for (i = 0; i < itemNum; i++) {
         if (services[i].svcMapId == svcMapId) {
             return (short)i;
@@ -2255,24 +2188,18 @@ static short HiLinkGetSvcIdxBySvcMapId(unsigned short svcMapId)
 static short HiLinkUpdateOneKeyVal(unsigned short svcMapId, unsigned short keyMapId, int val, const char* str)
 {
     unsigned short cnt = 0;
-		unsigned short i;
-		HiLinkMsg* keyVals = NULL;
-		char* strAddr = NULL;
-		HiLinkDataType dataType ;
-		unsigned short length = 0;
-	  unsigned short j;
     KeyInfo* keys = (KeyInfo*)HiLinkGetProfileInfoList(TYPE_KEY_MAP, &cnt);
     if (keys == NULL) {
         return HLK_RET_ERR;
     }
 
-    keyVals = (HiLinkMsg*)HiLinkGetProfileInfoList(TYPE_MSG_TABLE, &cnt);
+    HiLinkMsg* keyVals = (HiLinkMsg*)HiLinkGetProfileInfoList(TYPE_MSG_TABLE, &cnt);
     if (keyVals == NULL) {
         return HLK_RET_ERR;
     }
 
-		dataType = HLK_DATA_TYPE_UNKNOWN;
-    
+    HiLinkDataType dataType = HLK_DATA_TYPE_UNKNOWN;
+    unsigned short i;
     for (i = 0; i < cnt; i++) {
         if (keys[i].keyMapId == keyMapId) {
             dataType = keys[i].dataType;
@@ -2299,9 +2226,9 @@ static short HiLinkUpdateOneKeyVal(unsigned short svcMapId, unsigned short keyMa
                 return HLK_RET_ERR;
             }
 
-            strAddr = (char*)((long)(keyVals[i].msgInfo.value));
-            length = strlen(str);
-           
+            char* strAddr = (char*)((long)(keyVals[i].msgInfo.value));
+            unsigned short length = strlen(str);
+            unsigned short j;
             for (j = 0; j < length; j++) {
                 *(strAddr + j) = *(str + j);
             }
@@ -2321,12 +2248,11 @@ static short HiLinkUpdateOneKeyVal(unsigned short svcMapId, unsigned short keyMa
  */
 int HiLinkUpdateKeyVal(unsigned short svcMapId, unsigned short keyMapId, int val, const char* str)
 {
-		short keyIdx = 0;
     if ((str != NULL) && (strlen(str) > STR_KEY_MAX_LEN)) {
         return HLK_RET_ERR;
     }
 
-    keyIdx = HiLinkUpdateOneKeyVal(svcMapId, keyMapId, val, str);
+    short keyIdx = HiLinkUpdateOneKeyVal(svcMapId, keyMapId, val, str);
     if (keyIdx != HLK_RET_ERR) {
         HiLinkSetKeyValChangeMark(RPT_BY_KEY, (unsigned short)keyIdx, DEV_KEY_MASK_SET);
         return HLK_RET_OK;
@@ -2343,7 +2269,6 @@ int HiLinkUpdateKeyVal(unsigned short svcMapId, unsigned short keyMapId, int val
  */
 int HiLinkUpdateSvcVal(unsigned short svcMapId, unsigned short keyMapId, int val, const char* str, char rptFlag)
 {
-		short ret = 0;
     if ((rptFlag != REPORT_NOW) && (rptFlag != REPORT_LATER)) {
         return HLK_RET_ERR;
     }
@@ -2352,7 +2277,7 @@ int HiLinkUpdateSvcVal(unsigned short svcMapId, unsigned short keyMapId, int val
         return HLK_RET_ERR;
     }
 
-    ret = HiLinkUpdateOneKeyVal(svcMapId, keyMapId, val, str);
+    short ret = HiLinkUpdateOneKeyVal(svcMapId, keyMapId, val, str);
     if (ret != HLK_RET_ERR) {
         if (rptFlag == REPORT_NOW) {
             short svcIdx = HiLinkGetSvcIdxBySvcMapId(svcMapId);

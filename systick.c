@@ -95,3 +95,46 @@ void delaybm_ms(uint16_t nms)
     SysTick->VAL =0X00; //Çå¿Õ¼ÆÊýÆ÷
 }
 
+
+void delay100ms(void)
+{
+	int i,j,k;
+	for(i=0;i<1050;i++)
+	{
+		for(j=0;j<55;j++)
+		{
+			for(k=0;k<49;k++)
+			{
+				;
+			}
+		}
+	}
+}
+void delay50ms(void)
+{
+	int i,j,k;
+	for(i=0;i<520;i++)
+	{
+		for(j=0;j<55;j++)
+		{
+			for(k=0;k<49;k++)
+			{
+				;
+			}
+		}
+	}
+}
+void delay10ms(void)
+{
+	int i,j,k;
+	for(i=0;i<100;i++)
+	{
+		for(j=0;j<50;j++)
+		{
+			for(k=0;k<50;k++)
+			{
+				;
+			}
+		}
+	}
+}

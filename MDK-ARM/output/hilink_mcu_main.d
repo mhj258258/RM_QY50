@@ -4,3 +4,6 @@
 .\output\hilink_mcu_main.o: D:\keil\ARM\ARMCC\Bin\..\include\stdlib.h
 .\output\hilink_mcu_main.o: D:\keil\ARM\ARMCC\Bin\..\include\string.h
 .\output\hilink_mcu_main.o: D:\keil\ARM\ARMCC\Bin\..\include\stdbool.h
+.\output\hilink_mcu_main.o: ..\systick.h
+.\output\hilink_mcu_main.o: D:\keil\ARM\ARMCC\Bin\..\include\stdint.h
+.\output\hilink_mcu_main.o: ..\hilink_mcu_sdk\include\hilink_mcu.h

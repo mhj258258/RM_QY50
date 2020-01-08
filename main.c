@@ -29,28 +29,15 @@ int fputc(int ch, FILE *f)
 *************************************************/
 void System_Initializes(void)
 {
-  nvic_priority_group_set(NVIC_PRIGROUP_PRE1_SUB3);
+ // nvic_priority_group_set(NVIC_PRIGROUP_PRE1_SUB3);
   systick_config();
 	user_led_init();
 	user_key_init();
 	user_uart_init();
-	user_timer_init();
+	//user_timer_init();
 }
 
-void delay50(void)
-{
-	int i,j,k;
-	for(i=0;i<50;i++)
-	{
-		for(j=0;j<50;j++)
-		{
-			for(k=0;k<50;k++)
-			{
-				;
-			}
-		}
-	}
-}
+
 /************************************************
 函数名称 ： main
 功    能 ： 主函数入口
@@ -62,12 +49,13 @@ int main(void)
 {  	
 	System_Initializes();
 	USART1_DEBUG("\r\n 软件开始了 \r\n");
+	
+	USART1_DEBUG("\r\n ---------- \r\n");
+#if 0
+	USART1_DEBUG("\r\n start :%lld\r\n",Get_tick());
+	delay50ms();
+	USART1_DEBUG("\r\n stop :%lld\r\n",Get_tick());
+#endif	
 	//for hilink
-	while(1)
-	{
-		
-	}
-	
-	
-	//HiLinkMcuMain();
+	HiLinkMcuMain();
 }

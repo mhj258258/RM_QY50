@@ -17,7 +17,7 @@ unsigned long long HiLinkGetSysCurTime(void)
     /* 调用系统库函数获取系统时钟计数值 */
 	//---------by tomi----------
 		curTime = Get_tick();
-	
+	//	USART1_DEBUG("\r\n curTime :%lld\r\n",curTime);
     return curTime;
 }
 
@@ -30,8 +30,9 @@ void HiLinkUartSendOneByte(unsigned char data)
      * 添加合适的发送延时
      */
 		//---------by tomi----------
-		usart_data_transmit(EVAL_COM1, data);//uart0
-	
+		usart_data_transmit(EVAL_COM1, (uint8_t)data);//uart0
+		delay10ms();
+
     return;
 }
 
@@ -49,14 +50,15 @@ void HiLinkInitProfileValue(void)
      */
 		//------------by tomi---------------
 		//svc1：开关
-		HiLinkUpdateKeyVal(1, 1, 0, NULL);//编号从1开始，1，1就该表了开关服务 on属性
+		HiLinkUpdateKeyVal(SWITCH_SVC_MAP_ID, SWITCH_SVC_ON_KEY_MAP_ID, 0, NULL);//编号从1开始，1，1就该表了开关服务 on属性
 		//svc2：亮度
-		HiLinkUpdateKeyVal(2, 1, 100, NULL);
+		HiLinkUpdateKeyVal(BRIGHTNESS_SVC_MAP_ID, BRIGHTNESS_SVC_BRIGHTNESS_KEY_MAP_ID, 100, NULL);
 		//svc3：渐亮时长
-		HiLinkUpdateKeyVal(3, 1, 1800, NULL);
+		HiLinkUpdateKeyVal(WAKEUPTIME_SVC_MAP_ID, WAKEUPTIME_SVC_TIME_KEY_MAP_ID, 1800, NULL);
 		//svc4：渐暗时长
-		HiLinkUpdateKeyVal(4, 1, 1800, NULL);
-	
+		HiLinkUpdateKeyVal(FADETIME_SVC_MAP_ID, FADETIME_SVC_TIME_KEY_MAP_ID, 1800, NULL);
+		//svc5:	通用
+		HiLinkUpdateKeyVal(COMMONEXECUTION1_SVC_MAP_ID,COMMONEXECUTION1_SVC_ACTION_KEY_MAP_ID,0,NULL);
     return;
 }
 
@@ -106,7 +108,7 @@ void HiLinkNotifyUtcTime(const unsigned char* buf, int len)
 void HiLinkNotifyErrorInfo(unsigned int errCode)
 {
     /* 在此处添加实现代码, 打印传来的错误码errCode */
-
+		USART1_DEBUG("\r\n errCode :%x\r\n",errCode);
     return;
 }
 

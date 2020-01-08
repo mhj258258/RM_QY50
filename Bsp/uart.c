@@ -69,7 +69,7 @@ void user_uart_init(void)
 	
 		/* enable USART0 receive interrupt */
 		usart_interrupt_enable(USART0, USART_INT_RBNE);//接收缓冲区非空中断标志
-		usart_interrupt_disable(USART0, USART_INT_IDLE);//接收缓冲区非空中断标志USART_INT_FLAG_IDLE
+	//	usart_interrupt_disable(USART0, USART_INT_IDLE);//接收缓冲区非空中断标志USART_INT_FLAG_IDLE
 
 }
 
@@ -162,29 +162,41 @@ void USART0_IRQHandler(void)
 		if(RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_RBNE))
 		{
 			usart_interrupt_flag_clear(USART0, USART_INT_FLAG_RBNE);
-			usart_interrupt_enable(USART0, USART_INT_IDLE);//接收缓冲区非空中断标志
+			//usart_interrupt_enable(USART0, USART_INT_IDLE);//接收缓冲区非空中断标志
 			Rec_Start_Flag = 1;
       data = (uint8_t)usart_data_receive(USART0);
-			rx_buffer[rx_counter++] = data;
+			//rx_buffer[rx_counter++] = data;
 			//------------hilink------------
+			//USART1_DEBUG("data = %x\r\n",data);
 			HiLinkUartRcvOneByte(data);
-			//------------------------------		
-		
+			//------------------------------	
+#if 0			
+			if(data == 0x55)
+			{
+				USART1_DEBUG("here----\r\n");
+				HiLinkModuleReboot();	
+			}
+			else if(data == 0x88)
+			{
+				USART1_DEBUG("here2----\r\n");
+				HiLinkModuleReset();	
+			}
+			
       if(rx_counter >= nbr_data_to_read)
       {
             /* disable the USART0 receive interrupt */
             //usart_interrupt_disable(USART0, USART_INT_RBNE);
 					  rx_counter = 0;
       }
-
+#endif
 
     }      
-		if(RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE))
-		{
-			usart_interrupt_flag_clear(USART0, USART_INT_FLAG_IDLE);
-			usart_interrupt_disable(USART0, USART_INT_IDLE);//接收缓冲区非空中断标志
-			Rec_Done_Flag = 1;
-		}
+//		if(RESET != usart_interrupt_flag_get(USART0, USART_INT_FLAG_IDLE))
+//		{
+//			usart_interrupt_flag_clear(USART0, USART_INT_FLAG_IDLE);
+//			usart_interrupt_disable(USART0, USART_INT_IDLE);//接收缓冲区非空中断标志
+//			Rec_Done_Flag = 1;
+//		}
 }
 
 

@@ -6,6 +6,7 @@
 #include "hilink_device.h"
 #include "hilink_mcu.h"
 #include "led.h"
+#include "uart.h"
 /* 设备profile版本号定义 */
 const char* g_profileVer = "VC001.01.01";
 
@@ -83,7 +84,7 @@ HiLinkMsg g_msgTable[] = {
 int SwitchOnCtrlFunc(int value)
 {
     /* 获得模组下发的属性值 */
-    // int val = value;
+     int val = value;
 
     /* 根据属性值实现设备控制, 流程如下: */
 
@@ -91,16 +92,21 @@ int SwitchOnCtrlFunc(int value)
     // printf("SwitchOnCtrlFunc, on: %d\r\n", val);
     // 2.若属性有上报权限，可调用下面接口主动上报当前属性
     // HiLinkUpdateKeyVal(XXX_SVC_MAP_ID, XXX_SVC_XXX_KEY_MAP_ID, val, NULL);
-	//--------by tomi--------
-		if(value == 1)
+	
+		USART1_DEBUG("\r\n val :%d\r\n",val);
+		//--------by tomi--------
+		if(val == 1)
 		{
+			USART1_DEBUG("\r\n LED_ON \r\n");
 			gd_eval_led_on(LED2);
 		}
 		else
 		{
+			USART1_DEBUG("\r\n LED_OFF \r\n");
 			gd_eval_led_off(LED2);
 		}
-	
+		
+		HiLinkUpdateKeyVal(SWITCH_SVC_MAP_ID, SWITCH_SVC_ON_KEY_MAP_ID, val, NULL);
     return 0;
 }
 
@@ -113,7 +119,7 @@ int SwitchOnCtrlFunc(int value)
 int BrightnessBrightnessCtrlFunc(int value)
 {
     /* 获得模组下发的属性值 */
-    // int val = value;
+     int val = value;
 
     /* 根据属性值实现设备控制, 流程如下: */
 
@@ -121,7 +127,7 @@ int BrightnessBrightnessCtrlFunc(int value)
     // printf("BrightnessBrightnessCtrlFunc, brightness: %d\r\n", val);
     // 2.若属性有上报权限，可调用下面接口主动上报当前属性
     // HiLinkUpdateKeyVal(XXX_SVC_MAP_ID, XXX_SVC_XXX_KEY_MAP_ID, val, NULL);
-
+		USART1_DEBUG("\r\n BrightnessBrightnessCtrlFunc val = %d \r\n",val);
     return 0;
 }
 
@@ -134,7 +140,7 @@ int BrightnessBrightnessCtrlFunc(int value)
 int WakeupTimeTimeCtrlFunc(int value)
 {
     /* 获得模组下发的属性值 */
-    // int val = value;
+     int val = value;
 
     /* 根据属性值实现设备控制, 流程如下: */
 
@@ -142,7 +148,7 @@ int WakeupTimeTimeCtrlFunc(int value)
     // printf("WakeupTimeTimeCtrlFunc, time: %d\r\n", val);
     // 2.若属性有上报权限，可调用下面接口主动上报当前属性
     // HiLinkUpdateKeyVal(XXX_SVC_MAP_ID, XXX_SVC_XXX_KEY_MAP_ID, val, NULL);
-
+		USART1_DEBUG("\r\n WakeupTimeTimeCtrlFunc val = %d \r\n",val);
     return 0;
 }
 
@@ -155,7 +161,7 @@ int WakeupTimeTimeCtrlFunc(int value)
 int FadeTimeTimeCtrlFunc(int value)
 {
     /* 获得模组下发的属性值 */
-    // int val = value;
+     int val = value;
 
     /* 根据属性值实现设备控制, 流程如下: */
 
@@ -163,7 +169,7 @@ int FadeTimeTimeCtrlFunc(int value)
     // printf("FadeTimeTimeCtrlFunc, time: %d\r\n", val);
     // 2.若属性有上报权限，可调用下面接口主动上报当前属性
     // HiLinkUpdateKeyVal(XXX_SVC_MAP_ID, XXX_SVC_XXX_KEY_MAP_ID, val, NULL);
-
+		USART1_DEBUG("\r\n FadeTimeTimeCtrlFunc val = %d \r\n",val);
     return 0;
 }
 
@@ -176,7 +182,7 @@ int FadeTimeTimeCtrlFunc(int value)
 int CommonExecution1ActionCtrlFunc(int value)
 {
     /* 获得模组下发的属性值 */
-    // int val = value;
+    int val = value;
 
     /* 根据属性值实现设备控制, 流程如下: */
 
@@ -184,6 +190,6 @@ int CommonExecution1ActionCtrlFunc(int value)
     // printf("CommonExecution1ActionCtrlFunc, action: %d\r\n", val);
     // 2.若属性有上报权限，可调用下面接口主动上报当前属性
     // HiLinkUpdateKeyVal(XXX_SVC_MAP_ID, XXX_SVC_XXX_KEY_MAP_ID, val, NULL);
-
+		USART1_DEBUG("\r\n CommonExecution1ActionCtrlFunc val = %d \r\n",val);
     return 0;
 }
